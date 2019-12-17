@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_theme/theme_notifier.dart';
 import 'package:flutter_theme/themes.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(
-      ChangeNotifierProvider(
-        builder: (_) => ThemeNotifier(darkTheme),
-        child: MyApp(),
-      ),
-    );
+void main() {
+  SharedPreferences.getInstance().then(
+    (prefs) {
+      var darkModeOn = prefs.getBool('darkMode') ?? true;
+      runApp(
+        ChangeNotifierProvider<ThemeNotifier>(
+          builder: (_) => ThemeNotifier(darkModeOn ? darkTheme : lightTheme),
+          child: MyApp(),
+        ),
+      );
+    },
+  );
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -49,18 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.wb_sunny),
-            onPressed: () {
-              Provider.of(context).setTheme(lightTheme);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.monochrome_photos),
-            onPressed: () {
-              // ThemeProvider.controllerOf(context).nextTheme();
-            },
-          ),
+          
         ],
       ),
       body: Center(
