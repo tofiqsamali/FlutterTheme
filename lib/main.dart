@@ -1,33 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_theme/theme_notifier.dart';
-import 'package:flutter_theme/themes.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  SharedPreferences.getInstance().then(
-    (prefs) {
-      var darkModeOn = prefs.getBool('darkMode') ?? true;
-      runApp(
-        ChangeNotifierProvider<ThemeNotifier>(
-          builder: (_) => ThemeNotifier(darkModeOn ? darkTheme : lightTheme),
-          child: MyApp(),
-        ),
-      );
-    },
-  );
-}
+void main() => runApp(
+      ChangeNotifierProvider(
+        child: MyApp(),
+        create: (BuildContext context) {
+          return ThemeNotifier();
+        },
+      ),
+    );
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final themeNotifier = Provider.of<ThemeNotifier>(context);
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      theme: themeNotifier.getTheme(),
+      theme: Provider.of<ThemeNotifier>(context).currentThemeData,
       home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
@@ -56,9 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        actions: <Widget>[
-          
-        ],
+        actions: <Widget>[],
       ),
       body: Center(
         child: Column(
@@ -71,6 +59,15 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.display1,
             ),
+            RaisedButton(
+              onPressed: () {
+                print('Click on Switch Theme');
+                Provider.of<ThemeNotifier>(context).switchTheme();
+              },
+              child: Text(
+                'Switch Theme',
+              ),
+            )
           ],
         ),
       ),
@@ -78,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }
