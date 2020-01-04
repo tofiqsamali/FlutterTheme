@@ -1,81 +1,52 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_theme/theme_notifier.dart';
+import 'package:flutter_theme/mytheme.dart';
+import 'package:flutter_theme/theme_changer.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(
-      ChangeNotifierProvider(
-        child: MyApp(),
-        create: (BuildContext context) {
-          return ThemeNotifier();
-        },
-      ),
-    );
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: Provider.of<ThemeNotifier>(context).currentThemeData,
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+    final Future myTheme = SharedPreferences.getInstance().then(
+      (pref) {
+        return pref.getInt("defaultTheme");
+      },
     );
-  }
-}
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: <Widget>[],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-            RaisedButton(
-              onPressed: () {
-                print('Click on Switch Theme');
-                Provider.of<ThemeNotifier>(context).switchTheme();
+    return FutureBuilder(
+      future: myTheme,
+      builder: (context, snap) {
+        if (snap.hasData) {
+          return ChangeNotifierProvider<ThemeChanger>(
+              create: (context) {
+                return ThemeChanger();
               },
-              child: Text(
-                'Switch Theme',
-              ),
-            )
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
+              child: FutureBuilder(
+                future: myTheme,
+                builder: (context, snapshot) {
+                  return MyTheme(
+                    defaultTheme: snapshot.data,
+                  );
+                },
+              ));
+        } else {
+          return ChangeNotifierProvider<ThemeChanger>(
+              create: (context) {
+                return ThemeChanger();
+              },
+              child: FutureBuilder(
+                future: myTheme,
+                builder: (context, snapshot) {
+                  return MyTheme(
+                    defaultTheme: 0,
+                  );
+                },
+              ));
+        }
+      },
     );
   }
 }
